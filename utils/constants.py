@@ -1,0 +1,13 @@
+# Các màu dùng chung cho giao diện POS Café.
+COLOR_DARK_BROWN = "#1F1008"
+COLOR_BROWN = "#3A2114"
+COLOR_ORANGE = "#F59E0B"
+COLOR_ORANGE_HOVER = "#D97706"
+COLOR_BACKGROUND = "#F5F2ED"
+COLOR_SUCCESS = "#10B981"
+COLOR_DANGER = "#EF4444"
+
+# Trạng thái đơn hàng trong hệ thống.
+ORDER_STATUS_PENDING = "pending"
+ORDER_STATUS_PAID = "paid"
+ORDER_STATUS_CANCELLED = "cancelled"
