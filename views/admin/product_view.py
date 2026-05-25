@@ -44,10 +44,10 @@ class ProductManagementFrame(ctk.CTkFrame):
         self.entry_quantity = self.create_entry(right_panel, "Số lượng")
         self.entry_image = self.create_entry(right_panel, "Đường dẫn ảnh")
 
-        ctk.CTkButton(right_panel, text="➕ Thêm món", height=38, fg_color="#10B981", command=self.add_product).pack(fill="x", padx=20, pady=5)
-        ctk.CTkButton(right_panel, text="📝 Sửa món", height=38, fg_color="#F59E0B", command=self.update_product).pack(fill="x", padx=20, pady=5)
-        ctk.CTkButton(right_panel, text="🗑️ Xóa món", height=38, fg_color="#EF4444", command=self.delete_product).pack(fill="x", padx=20, pady=5)
-        ctk.CTkButton(right_panel, text="🧹 Làm sạch", height=35, fg_color="#6B7280", command=self.clear_form).pack(fill="x", padx=20, pady=(15, 5))
+        ctk.CTkButton(right_panel, text="Thêm món", height=38, fg_color="#10B981", command=self.add_product).pack(fill="x", padx=20, pady=5)
+        ctk.CTkButton(right_panel, text="Sửa món", height=38, fg_color="#F59E0B", command=self.update_product).pack(fill="x", padx=20, pady=5)
+        ctk.CTkButton(right_panel, text="Xóa món", height=38, fg_color="#EF4444", command=self.delete_product).pack(fill="x", padx=20, pady=5)
+        ctk.CTkButton(right_panel, text="Làm sạch", height=35, fg_color="#6B7280", command=self.clear_form).pack(fill="x", padx=20, pady=(15, 5))
 
         self.load_products()
 

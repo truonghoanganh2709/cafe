@@ -8,6 +8,8 @@ from views.staff.history_view import OrderHistoryFrame
 from views.admin.product_view import ProductManagementFrame as AdminProductManagementFrame
 from views.admin.user_view import UserManagementFrame as AdminUserManagementFrame
 from views.admin.report_view import ReportFrame as AdminReportFrame
+from models.product_model import ProductModel
+from utils.icon_loader import icon_text, load_product_image
 
 # ==============================================================================
 # 1. TRANG CHỦ (HomeFrame) - HIỂN THỊ THỐNG KÊ TỪ CONTROLLER (MVC)
@@ -18,6 +20,7 @@ class HomeFrame(ctk.CTkFrame):
         self.controller = controller
         self.username = username
         self.role = role
+        self.product_images = []
 
         # Tiêu đề trang
         self.header_label = ctk.CTkLabel(
@@ -45,15 +48,15 @@ class HomeFrame(ctk.CTkFrame):
 
         # Tạo các card thống kê theo vai trò đăng nhập
         if self.role == "admin":
-            self.create_card(self.stats_panel, "DOANH THU HÔM NAY", f"{stats['today_revenue']:,.0f}đ", "tổng tiền đã thu", "💰")
-            self.create_card(self.stats_panel, "DOANH THU THÁNG", f"{stats.get('month_revenue', 0):,.0f}đ", "đơn đã thanh toán", "📅")
-            self.create_card(self.stats_panel, "TỔNG SỐ ĐƠN", f"{stats['total_orders']}", "hóa đơn đã thanh toán", "📋")
-            self.create_card(self.stats_panel, "TỔNG SẢN PHẨM", f"{stats['total_products']}", "món đang kinh doanh", "☕")
-            self.create_card(self.stats_panel, "TỔNG USER", f"{stats.get('total_users', 0)}", "tài khoản hệ thống", "👥")
+            self.create_card(self.stats_panel, "DOANH THU HÔM NAY", f"{stats['today_revenue']:,.0f}đ", "tổng tiền đã thu", "dollar-sign")
+            self.create_card(self.stats_panel, "DOANH THU THÁNG", f"{stats.get('month_revenue', 0):,.0f}đ", "đơn đã thanh toán", "chart-column")
+            self.create_card(self.stats_panel, "TỔNG SỐ ĐƠN", f"{stats['total_orders']}", "hóa đơn đã thanh toán", "shopping-bag")
+            self.create_card(self.stats_panel, "TỔNG SẢN PHẨM", f"{stats['total_products']}", "món đang kinh doanh", "coffee")
+            self.create_card(self.stats_panel, "TỔNG USER", f"{stats.get('total_users', 0)}", "tài khoản hệ thống", "users")
         else:
-            self.create_card(self.stats_panel, "SỐ ĐƠN HÔM NAY", f"{stats['today_orders']}", "đơn đã thanh toán", "🛒")
-            self.create_card(self.stats_panel, "DOANH THU HÔM NAY", f"{stats['today_revenue']:,.0f}đ", "tổng tiền đã thu", "💰")
-            self.create_card(self.stats_panel, "TỔNG MÓN BÁN HÔM NAY", f"{stats.get('today_items', 0)}", "món đã thanh toán", "☕")
+            self.create_card(self.stats_panel, "SỐ ĐƠN HÔM NAY", f"{stats['today_orders']}", "đơn đã thanh toán", "shopping-cart")
+            self.create_card(self.stats_panel, "DOANH THU HÔM NAY", f"{stats['today_revenue']:,.0f}đ", "tổng tiền đã thu", "dollar-sign")
+            self.create_card(self.stats_panel, "TỔNG MÓN BÁN HÔM NAY", f"{stats.get('today_items', 0)}", "món đã thanh toán", "coffee")
 
         # Top 5 món bán chạy nhất và Đơn hàng gần đây
         self.bottom_panel = ctk.CTkFrame(self, fg_color="transparent")
@@ -68,7 +71,7 @@ class HomeFrame(ctk.CTkFrame):
         
         ctk.CTkLabel(
             self.best_seller_frame,
-            text="Top Món Bán Chạy",
+            text=icon_text("trophy", "Top Món Bán Chạy"),
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=25, pady=(20, 5))
@@ -88,7 +91,7 @@ class HomeFrame(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self.recent_orders_frame,
-            text="Đơn Hàng Gần Đây",
+            text=icon_text("receipt", "Đơn Hàng Gần Đây"),
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=25, pady=(20, 5))
@@ -103,8 +106,19 @@ class HomeFrame(ctk.CTkFrame):
         self.load_recent_orders()
 
     def create_card(self, parent, title, value, desc, icon):
-        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=18)
+        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=20, border_width=1, border_color="#F3E7D8")
         card.pack(side="left", fill="both", expand=True, padx=10, pady=5)
+
+        icon_box = ctk.CTkFrame(card, fg_color="#FFF7ED", width=54, height=54, corner_radius=18)
+        icon_box.place(relx=0.84, rely=0.34, anchor="center")
+        icon_box.pack_propagate(False)
+
+        ctk.CTkLabel(
+            icon_box,
+            text=icon_text(icon),
+            font=("Arial", 26),
+            text_color="#F59E0B"
+        ).pack(expand=True)
 
         ctk.CTkLabel(
             card,
@@ -127,14 +141,6 @@ class HomeFrame(ctk.CTkFrame):
             text_color="#8A7A70"
         ).pack(anchor="w", padx=25, pady=(2, 20))
 
-        icon_label = ctk.CTkLabel(
-            card,
-            text=icon,
-            font=("Arial", 30),
-            text_color="#F59E0B"
-        )
-        icon_label.place(relx=0.85, rely=0.4, anchor="center")
-
     def load_best_sellers(self):
         # Lấy từ Controller (chỉ lọc các hóa đơn 'paid')
         rows = OrderController.get_top_sellers(5)
@@ -147,8 +153,12 @@ class HomeFrame(ctk.CTkFrame):
                 text_color="#9CA3AF"
             ).pack(pady=40)
         else:
+            self.product_images.clear()
+            products = ProductModel.get_all()
+            image_by_name = {str(row[1]): row[5] for row in products}
+
             for idx, (name, qty) in enumerate(rows):
-                row_frame = ctk.CTkFrame(self.best_seller_frame, fg_color="transparent")
+                row_frame = ctk.CTkFrame(self.best_seller_frame, fg_color="#F9FAFB", corner_radius=14)
                 row_frame.pack(fill="x", padx=25, pady=6)
                 
                 rank_colors = ["#EF4444", "#F59E0B", "#10B981", "#6B7280", "#9CA3AF"]
@@ -165,10 +175,15 @@ class HomeFrame(ctk.CTkFrame):
                     font=("Arial", 12, "bold")
                 )
                 rank_badge.pack(side="left", padx=(0, 15))
+
+                product_image = load_product_image(image_by_name.get(str(name), ""), size=(46, 46))
+                if product_image:
+                    self.product_images.append(product_image)
+                    ctk.CTkLabel(row_frame, text="", image=product_image).pack(side="left", padx=(0, 12), pady=7)
                 
                 name_lbl = ctk.CTkLabel(
                     row_frame,
-                    text=name,
+                    text=f"{icon_text('flame')} {name}",
                     font=("Arial", 14, "bold"),
                     text_color="#1F1008",
                     anchor="w"
@@ -968,7 +983,7 @@ class DashboardFrame(ctk.CTkFrame):
 
         logout_btn = ctk.CTkButton(
             bottom_frame,
-            text="↪ Đăng xuất",
+            text=icon_text("log-out", "Đăng xuất"),
             height=45,
             corner_radius=10,
             fg_color="transparent",
@@ -984,17 +999,16 @@ class DashboardFrame(ctk.CTkFrame):
         self.show_home()
 
     def build_navigation(self):
-        self.add_menu_item("⌂  Trang chủ", self.show_home)
+        self.add_menu_item(icon_text("home", "Trang chủ"), self.show_home)
 
         if self.role == "admin":
-            self.add_menu_item("☕  Quản lý món", self.show_product_mgmt)
-            self.add_menu_item("👥  Quản lý nhân viên", self.show_user_mgmt)
-            self.add_menu_item("📊  Thống kê doanh thu", self.show_revenue)
-            self.add_menu_item("📈  Báo cáo Excel", self.show_report)
-            self.add_menu_item("📋  Lịch sử hóa đơn", self.show_history)
+            self.add_menu_item(icon_text("coffee", "Quản lý món"), self.show_product_mgmt)
+            self.add_menu_item(icon_text("users", "Quản lý nhân viên"), self.show_user_mgmt)
+            self.add_menu_item(icon_text("chart-column", "Báo cáo doanh thu"), self.show_revenue)
+            self.add_menu_item(icon_text("history", "Lịch sử hóa đơn"), self.show_history)
         elif self.role == "staff":
-            self.add_menu_item("🛒  Tạo đơn hàng", self.show_staff_order)
-            self.add_menu_item("📋  Lịch sử hóa đơn", self.show_history)
+            self.add_menu_item(icon_text("shopping-cart", "Tạo đơn hàng"), self.show_staff_order)
+            self.add_menu_item(icon_text("receipt", "Lịch sử hóa đơn"), self.show_history)
 
     def add_menu_item(self, text, command):
         btn = ctk.CTkButton(
@@ -1047,7 +1061,7 @@ class DashboardFrame(ctk.CTkFrame):
         self.show_sub_frame(AdminUserManagementFrame)
 
     def show_revenue(self):
-        self.show_sub_frame(RevenueStatisticsFrame)
+        self.show_sub_frame(AdminReportFrame)
 
     def show_report(self):
         self.show_sub_frame(AdminReportFrame)

@@ -3,6 +3,21 @@ from config.database import connect_db
 class ProductModel:
     # Model xử lý toàn bộ thao tác dữ liệu của bảng products.
     @staticmethod
+    def ensure_image_column():
+        # Thêm cột image nếu database cũ chưa có cột lưu đường dẫn ảnh.
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("SHOW COLUMNS FROM products LIKE 'image'")
+        has_image = cursor.fetchone()
+        cursor.execute("SHOW COLUMNS FROM products LIKE 'image_path'")
+        has_image_path = cursor.fetchone()
+        if not has_image and not has_image_path:
+            cursor.execute("ALTER TABLE products ADD COLUMN image VARCHAR(255) NULL")
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+    @staticmethod
     def _get_columns(cursor):
         # Tự nhận diện tên cột để tương thích database cũ và mới.
         cursor.execute("SHOW COLUMNS FROM products")

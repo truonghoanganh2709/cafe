@@ -38,6 +38,14 @@ class OrderModel:
         return "order_date"
 
     @staticmethod
+    def get_product_columns(cursor):
+        cursor.execute("SHOW COLUMNS FROM products")
+        columns = [row[0] for row in cursor.fetchall()]
+        name_column = "product_name" if "product_name" in columns else "name"
+        stock_column = "quantity" if "quantity" in columns else ("stock" if "stock" in columns else None)
+        return name_column, stock_column
+
+    @staticmethod
     def create_pending_order(user_id, total_amount, cart):
         """
         Tao hoa don moi o trang thai cho thanh toan (pending) va luu chi tiet hoa don.
@@ -68,8 +76,10 @@ class OrderModel:
                 cursor.execute(sql_detail, (order_id, p_id, qty, price))
                 
                 # Cap nhat tru ton kho cua san pham
-                sql_update_stock = "UPDATE products SET quantity = quantity - %s WHERE id = %s"
-                cursor.execute(sql_update_stock, (qty, p_id))
+                name_column, stock_column = OrderModel.get_product_columns(cursor)
+                if stock_column:
+                    sql_update_stock = f"UPDATE products SET {stock_column} = {stock_column} - %s WHERE id = %s"
+                    cursor.execute(sql_update_stock, (qty, p_id))
             
             conn.commit()
             return order_id
@@ -137,9 +147,10 @@ class OrderModel:
         try:
             conn = connect_db()
             cursor = conn.cursor()
+            product_name_column, stock_column = OrderModel.get_product_columns(cursor)
             
-            sql = """
-                SELECT p.product_name, od.quantity, od.price
+            sql = f"""
+                SELECT p.{product_name_column}, od.quantity, od.price
                 FROM order_details od
                 JOIN products p ON od.product_id = p.id
                 WHERE od.order_id = %s
@@ -159,7 +170,17 @@ class OrderModel:
         Tinh toan tong hop doanh thu va so don tu database.
         CHI TINH tu cac don hang co trang thai status = 'paid'.
         """
-        res = {"total_revenue": 0.0, "total_orders": 0, "avg_order": 0.0, "today_orders": 0, "today_revenue": 0.0, "total_products": 0}
+        res = {
+            "total_revenue": 0.0,
+            "total_orders": 0,
+            "avg_order": 0.0,
+            "today_orders": 0,
+            "today_revenue": 0.0,
+            "month_revenue": 0.0,
+            "today_items": 0,
+            "total_products": 0,
+            "total_users": 0
+        }
         try:
             conn = connect_db()
             cursor = conn.cursor()
@@ -184,9 +205,25 @@ class OrderModel:
             rev = cursor.fetchone()[0]
             res["today_revenue"] = float(rev) if rev else 0.0
 
+            cursor.execute(f"SELECT SUM(total_amount) FROM orders WHERE YEAR({date_column}) = YEAR(CURDATE()) AND MONTH({date_column}) = MONTH(CURDATE()) AND status = 'paid'")
+            month_rev = cursor.fetchone()[0]
+            res["month_revenue"] = float(month_rev) if month_rev else 0.0
+
+            cursor.execute(f"""
+                SELECT SUM(od.quantity)
+                FROM order_details od
+                JOIN orders o ON od.order_id = o.id
+                WHERE DATE(o.{date_column}) = CURDATE() AND o.status = 'paid'
+            """)
+            today_items = cursor.fetchone()[0]
+            res["today_items"] = int(today_items) if today_items else 0
+
             # 4. Tong so san pham dang co
             cursor.execute("SELECT COUNT(*) FROM products")
             res["total_products"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM users")
+            res["total_users"] = cursor.fetchone()[0]
 
             cursor.close()
             conn.close()
@@ -203,14 +240,15 @@ class OrderModel:
         try:
             conn = connect_db()
             cursor = conn.cursor()
+            product_name_column, stock_column = OrderModel.get_product_columns(cursor)
             
-            sql = """
-                SELECT p.product_name, SUM(od.quantity) as total_sold
+            sql = f"""
+                SELECT p.{product_name_column}, SUM(od.quantity) as total_sold
                 FROM order_details od
                 JOIN products p ON od.product_id = p.id
                 JOIN orders o ON od.order_id = o.id
                 WHERE o.status = 'paid'
-                GROUP BY od.product_id
+                GROUP BY od.product_id, p.{product_name_column}
                 ORDER BY total_sold DESC
                 LIMIT %s
             """

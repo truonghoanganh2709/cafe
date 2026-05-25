@@ -1,4 +1,5 @@
 from models.order_model import OrderModel
+from utils.export_excel import export_invoice_to_excel
 
 class OrderController:
     @staticmethod
@@ -78,3 +79,15 @@ class OrderController:
         except Exception as e:
             print("Error in get_recents controller:", e)
             return []
+
+    @staticmethod
+    def export_invoice(file_path, invoice_info, order_id):
+        """Xuất hóa đơn được chọn ra file Excel."""
+        try:
+            details = OrderModel.get_order_details(order_id)
+            if not details:
+                return False, "Hóa đơn chưa có chi tiết món."
+            export_invoice_to_excel(file_path, invoice_info, details)
+            return True, None
+        except Exception as e:
+            return False, f"Lỗi xuất hóa đơn: {str(e)}"

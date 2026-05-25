@@ -1,5 +1,6 @@
+import os
 import customtkinter as ctk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 from controllers.order_controller import OrderController
 
 class OrderHistoryFrame(ctk.CTkFrame):
@@ -132,6 +133,18 @@ class OrderHistoryFrame(ctk.CTkFrame):
             font=("Arial", 13, "bold"),
             command=self.confirm_payment
         )
+        self.btn_export_invoice = ctk.CTkButton(
+            self.action_panel,
+            text="📤 Xuất hóa đơn",
+            width=150,
+            height=40,
+            corner_radius=10,
+            fg_color="#F59E0B",
+            hover_color="#D97706",
+            text_color="white",
+            font=("Arial", 13, "bold"),
+            command=self.export_selected_invoice
+        )
         # Ẩn nút mặc định
         self.selected_order_id = None
 
@@ -140,6 +153,7 @@ class OrderHistoryFrame(ctk.CTkFrame):
     def load_orders_history(self):
         # Ẩn nút thanh toán
         self.btn_pay_confirm.pack_forget()
+        self.btn_export_invoice.pack_forget()
         self.selected_order_id = None
         self.lbl_selected_info.configure(text="Hãy chọn một hóa đơn từ danh sách trên để xem chi tiết / thanh toán.")
 
@@ -213,6 +227,7 @@ class OrderHistoryFrame(ctk.CTkFrame):
             )
             # Hiển thị nút xác nhận thanh toán ở bên phải panel
             self.btn_pay_confirm.pack(side="right", padx=25, pady=15)
+            self.btn_export_invoice.pack_forget()
         else:
             color = "#10B981" if status_display == "Đã thanh toán" else "#EF4444"
             self.lbl_selected_info.configure(
@@ -221,6 +236,10 @@ class OrderHistoryFrame(ctk.CTkFrame):
             )
             # Ẩn nút xác nhận thanh toán
             self.btn_pay_confirm.pack_forget()
+            if status_display == "Đã thanh toán":
+                self.btn_export_invoice.pack(side="right", padx=25, pady=15)
+            else:
+                self.btn_export_invoice.pack_forget()
 
     def confirm_payment(self):
         if not self.selected_order_id:
@@ -242,6 +261,36 @@ class OrderHistoryFrame(ctk.CTkFrame):
         
         # Tải lại bảng lịch sử hóa đơn
         self.load_orders_history()
+
+    def export_selected_invoice(self):
+        if not self.selected_order_id:
+            messagebox.showwarning("Thông báo", "Vui lòng chọn hóa đơn cần xuất.")
+            return
+
+        selected_item = self.tree.focus()
+        values = self.tree.item(selected_item, "values")
+        invoice_info = {
+            "code": values[0],
+            "time": values[1],
+            "seller": values[2],
+            "amount": values[3],
+            "status": values[4],
+        }
+
+        file_path = filedialog.asksaveasfilename(
+            initialdir=os.path.abspath("reports/excel"),
+            initialfile=f"hoa_don_{self.selected_order_id:04d}.xlsx",
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")]
+        )
+        if not file_path:
+            return
+
+        success, error = OrderController.export_invoice(file_path, invoice_info, self.selected_order_id)
+        if error:
+            messagebox.showerror("Lỗi", error)
+            return
+        messagebox.showinfo("Thành công", f"Đã xuất hóa đơn:\n{file_path}")
 
     def show_order_details(self, event):
         selected_item = self.tree.focus()

@@ -1,7 +1,8 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 from tkinter import messagebox
-from config.database import connect_db
 from controllers.order_controller import OrderController
+from models.product_model import ProductModel
+from utils.icon_loader import icon_text, load_product_image
 
 class StaffOrderFrame(ctk.CTkFrame):
     def __init__(self, parent, controller, user_id):
@@ -11,6 +12,7 @@ class StaffOrderFrame(ctk.CTkFrame):
         
         # Giỏ hàng hiện tại: {product_id: {"name": ..., "price": ..., "quantity": ..., "max_stock": ...}}
         self.cart = {}
+        self.product_images = []
 
         # Bố cục POS (Trái: Menu & Tìm kiếm, Phải: Giỏ hàng)
         self.pos_body = ctk.CTkFrame(self, fg_color="transparent")
@@ -61,8 +63,8 @@ class StaffOrderFrame(ctk.CTkFrame):
     def load_category_filters(self):
         btn_all = ctk.CTkButton(
             self.filter_buttons_frame,
-            text="Tất cả",
-            width=80,
+            text=icon_text("utensils", "Tất cả"),
+            width=95,
             height=35,
             corner_radius=18,
             fg_color="#F59E0B",
@@ -74,40 +76,35 @@ class StaffOrderFrame(ctk.CTkFrame):
         self.category_buttons["All"] = btn_all
 
         try:
-            conn = connect_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, name FROM categories")
-            categories = cursor.fetchall()
-            
-            for cat_id, cat_name in categories:
+            ProductModel.ensure_image_column()
+            products = ProductModel.get_all()
+            categories = sorted({str(row[2]) for row in products if row[2] not in [None, ""]})
+
+            for cat_name in categories:
                 cat_display = cat_name
                 if cat_name.lower() == "coffee":
-                    cat_display = "Cà Phê"
+                    cat_display = "☕ Cà Phê"
                 elif cat_name.lower() == "tea":
-                    cat_display = "Trà"
+                    cat_display = "🍵 Trà"
                 elif cat_name.lower() == "cake":
-                    cat_display = "Bánh Ngọt"
-                
+                    cat_display = "🍰 Bánh Ngọt"
+
                 btn = ctk.CTkButton(
                     self.filter_buttons_frame,
                     text=cat_display,
-                    width=80,
+                    width=95,
                     height=35,
                     corner_radius=18,
                     fg_color="white",
                     text_color="#4B5563",
                     hover_color="#F3F4F6",
                     font=("Arial", 13, "bold"),
-                    command=lambda cid=cat_id: self.select_category(cid)
+                    command=lambda cid=cat_name: self.select_category(cid)
                 )
                 btn.pack(side="left", padx=5)
-                self.category_buttons[cat_id] = btn
-
-            cursor.close()
-            conn.close()
+                self.category_buttons[cat_name] = btn
         except Exception as e:
             print("Lỗi tải danh mục filter:", e)
-
     def select_category(self, cat_id):
         for cid, btn in self.category_buttons.items():
             if cid == cat_id:
@@ -126,25 +123,14 @@ class StaffOrderFrame(ctk.CTkFrame):
             widget.destroy()
 
         search_query = self.search_entry.get().strip()
+        self.product_images.clear()
 
         try:
-            conn = connect_db()
-            cursor = conn.cursor()
-            
-            sql = "SELECT id, name, price, quantity, category_id FROM products WHERE 1=1"
-            params = []
-            
-            if search_query:
-                sql += " AND name LIKE %s"
-                params.append(f"%{search_query}%")
-                
+            ProductModel.ensure_image_column()
+            products = ProductModel.get_all(search_query)
             if self.selected_category_id != "All":
-                sql += " AND category_id = %s"
-                params.append(self.selected_category_id)
-                
-            cursor.execute(sql, tuple(params))
-            products = cursor.fetchall()
-            
+                products = [row for row in products if str(row[2]) == str(self.selected_category_id)]
+
             if not products:
                 empty_lbl = ctk.CTkLabel(
                     self.menu_scroll,
@@ -155,73 +141,71 @@ class StaffOrderFrame(ctk.CTkFrame):
                 empty_lbl.pack(pady=50)
             else:
                 row_frame = None
-                for idx, (p_id, p_name, price, stock, cat_id) in enumerate(products):
+                for idx, (p_id, p_name, category, price, stock, image_path) in enumerate(products):
                     if idx % 3 == 0:
                         row_frame = ctk.CTkFrame(self.menu_scroll, fg_color="transparent")
-                        row_frame.pack(fill="x", pady=6)
-                        
-                    self.create_product_card(row_frame, p_id, p_name, price, stock, cat_id)
+                        row_frame.pack(fill="x", pady=8)
 
-            cursor.close()
-            conn.close()
+                    self.create_product_card(row_frame, p_id, p_name, category, price, stock, image_path)
         except Exception as e:
             print("Lỗi load danh sách món POS:", e)
 
-    def create_product_card(self, parent, p_id, name, price, stock, cat_id):
-        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=15, width=220, height=210)
+    def create_product_card(self, parent, p_id, name, category, price, stock, image_path):
+        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", corner_radius=18, width=230, height=285, border_width=1, border_color="#F3E7D8")
         card.pack_propagate(False)
-        card.pack(side="left", padx=8, pady=5)
+        card.pack(side="left", padx=10, pady=6)
 
-        emoji = "☕"
-        if cat_id == 1:
-            emoji = "☕"
-        elif cat_id == 2:
-            emoji = "🍵"
-        elif cat_id == 3:
-            emoji = "🍰"
+        img_frame = ctk.CTkFrame(card, fg_color="#FFF7ED", height=125, corner_radius=16)
+        img_frame.pack(fill="x", padx=10, pady=(10, 8))
+        img_frame.pack_propagate(False)
 
-        img_frame = ctk.CTkFrame(card, fg_color="#F9FAFB", height=100, corner_radius=12)
-        img_frame.pack(fill="x", padx=10, pady=(10, 5))
-        
-        emoji_lbl = ctk.CTkLabel(img_frame, text=emoji, font=("Arial", 38))
-        emoji_lbl.pack(expand=True)
+        product_image = load_product_image(image_path, size=(190, 118))
+        if product_image:
+            self.product_images.append(product_image)
+            ctk.CTkLabel(img_frame, text="", image=product_image).pack(expand=True)
+        else:
+            ctk.CTkLabel(img_frame, text="🍽️", font=("Arial", 44)).pack(expand=True)
 
-        name_lbl = ctk.CTkLabel(
+        ctk.CTkLabel(
             card,
             text=name,
             font=("Arial", 14, "bold"),
             text_color="#1F1008",
             anchor="w"
-        )
-        name_lbl.pack(anchor="w", padx=12, pady=(5, 1))
+        ).pack(anchor="w", padx=12, pady=(4, 1))
 
-        stock_text = f"Tồn: {stock}" if stock > 0 else "Hết hàng"
+        ctk.CTkLabel(
+            card,
+            text=f"{icon_text('utensils')} {category}",
+            font=("Arial", 11, "bold"),
+            text_color="#8A7A70",
+            anchor="w"
+        ).pack(anchor="w", padx=12)
+
+        stock_text = f"Còn {stock}" if stock > 0 else "Hết hàng"
         stock_color = "#10B981" if stock > 0 else "#EF4444"
-        
+
         info_frame = ctk.CTkFrame(card, fg_color="transparent")
-        info_frame.pack(fill="x", padx=12, pady=(2, 10))
-        
-        price_lbl = ctk.CTkLabel(
+        info_frame.pack(fill="x", padx=12, pady=(6, 8))
+
+        ctk.CTkLabel(
             info_frame,
             text=f"{price:,.0f}đ",
-            font=("Arial", 14, "bold"),
+            font=("Arial", 15, "bold"),
             text_color="#D97706"
-        )
-        price_lbl.pack(side="left")
+        ).pack(side="left")
 
-        stock_lbl = ctk.CTkLabel(
+        ctk.CTkLabel(
             info_frame,
             text=stock_text,
-            font=("Arial", 11),
+            font=("Arial", 11, "bold"),
             text_color=stock_color
-        )
-        stock_lbl.pack(side="right")
+        ).pack(side="right")
 
         add_btn = ctk.CTkButton(
             card,
-            text="+ Thêm",
-            width=80,
-            height=30,
+            text=icon_text("plus", "Thêm"),
+            height=34,
             corner_radius=15,
             fg_color="#F59E0B" if stock > 0 else "#E5E7EB",
             hover_color="#D97706" if stock > 0 else "#E5E7EB",
@@ -230,12 +214,11 @@ class StaffOrderFrame(ctk.CTkFrame):
             state="normal" if stock > 0 else "disabled",
             command=lambda: self.add_to_cart(p_id, name, price, stock)
         )
-        add_btn.place(relx=0.5, rely=0.86, anchor="center")
-
+        add_btn.pack(side="bottom", padx=12, pady=(0, 12), fill="x")
     def setup_cart_panel(self):
         ctk.CTkLabel(
             self.right_panel,
-            text="Đơn Hiện Tại",
+            text=icon_text("shopping-cart", "Đơn Hiện Tại"),
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=20, pady=(20, 2))
@@ -282,7 +265,7 @@ class StaffOrderFrame(ctk.CTkFrame):
 
         self.pay_btn = ctk.CTkButton(
             self.checkout_panel,
-            text="Tạo đơn",
+            text=icon_text("receipt", "Tạo đơn"),
             height=50,
             corner_radius=12,
             fg_color="#F59E0B",
@@ -439,3 +422,5 @@ class StaffOrderFrame(ctk.CTkFrame):
         
         # Tải lại sản phẩm menu để cập nhật số tồn
         self.load_products_menu()
+
+

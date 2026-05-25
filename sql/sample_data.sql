@@ -8,9 +8,9 @@ ON DUPLICATE KEY UPDATE fullname=VALUES(fullname), role=VALUES(role);
 
 -- Dữ liệu mẫu món café.
 INSERT INTO products (product_name, category, price, quantity, image) VALUES
-('Cà phê đen', 'Coffee', 25000, 100, ''),
-('Cà phê sữa', 'Coffee', 30000, 100, ''),
-('Bạc xỉu', 'Coffee', 35000, 80, ''),
-('Trà đào', 'Tea', 35000, 80, ''),
-('Trà sữa TLU', 'Tea', 40000, 70, ''),
-('Bánh tiramisu', 'Cake', 45000, 30, '');
+('Cà phê đen', 'Coffee', 25000, 100, 'assets/images/products/default_food.png'),
+('Cà phê sữa', 'Coffee', 30000, 100, 'assets/images/products/default_food.png'),
+('Bạc xỉu', 'Coffee', 35000, 80, 'assets/images/products/default_food.png'),
+('Trà đào', 'Tea', 35000, 80, 'assets/images/products/default_food.png'),
+('Trà sữa TLU', 'Tea', 40000, 70, 'assets/images/products/default_food.png'),
+('Bánh tiramisu', 'Cake', 45000, 30, 'assets/images/products/default_food.png');
