@@ -10,6 +10,7 @@ from views.admin.user_view import UserManagementFrame as AdminUserManagementFram
 from views.admin.report_view import ReportFrame as AdminReportFrame
 from models.product_model import ProductModel
 from utils.icon_loader import load_icon, load_product_image
+from utils.icon_loader import load_tinted_icon
 
 # ==============================================================================
 # 1. TRANG CHỦ (HomeFrame) - HIỂN THỊ THỐNG KÊ TỪ CONTROLLER (MVC)
@@ -121,11 +122,11 @@ class HomeFrame(ctk.CTkFrame):
         card = ctk.CTkFrame(parent, fg_color="white", corner_radius=20, border_width=1, border_color="#F3E7D8")
         card.pack(side="left", fill="both", expand=True, padx=10, pady=5)
 
-        icon_box = ctk.CTkFrame(card, fg_color="#FFF7ED", width=54, height=54, corner_radius=18)
+        icon_box = ctk.CTkFrame(card, fg_color="#F59E0B", width=56, height=56, corner_radius=18)
         icon_box.place(relx=0.84, rely=0.34, anchor="center")
         icon_box.pack_propagate(False)
 
-        card_icon = load_icon(icon, size=(28, 28))
+        card_icon = load_tinted_icon(icon, size=(30, 30), color="#FFFFFF")
 
         if card_icon:
             self.icon_images.append(card_icon)
@@ -143,7 +144,7 @@ class HomeFrame(ctk.CTkFrame):
                 icon_box,
                 text="•",
                 font=("Arial", 26),
-                text_color="#F59E0B"
+                text_color="white"
             ).pack(expand=True)
 
         ctk.CTkLabel(
@@ -156,7 +157,7 @@ class HomeFrame(ctk.CTkFrame):
         ctk.CTkLabel(
             card,
             text=value,
-            font=("Arial", 32, "bold"),
+            font=("Arial", 25, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=25)
 

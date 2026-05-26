@@ -1,6 +1,6 @@
 import os
 import customtkinter as ctk
-from PIL import Image
+from PIL import Image, ImageColor
 
 # =========================
 # PATH
@@ -190,6 +190,49 @@ def load_icon(name, size=(22, 22)):
     )
 
     return None
+
+
+def load_tinted_icon(name, size=(22, 22), color="#D97706"):
+    icon_name = ICONS.get(
+        name,
+        name
+    )
+
+    extensions = [
+        ".png",
+        ".jpg",
+        ".jpeg"
+    ]
+
+    for ext in extensions:
+        icon_path = os.path.join(
+            ICONS_DIR,
+            f"{icon_name}{ext}"
+        )
+
+        if not os.path.exists(icon_path):
+            continue
+
+        try:
+            image = Image.open(icon_path).convert("RGBA")
+            alpha = image.getchannel("A")
+            tinted = Image.new(
+                "RGBA",
+                image.size,
+                ImageColor.getrgb(color) + (0,)
+            )
+            tinted.putalpha(alpha)
+
+            return ctk.CTkImage(
+                light_image=tinted,
+                dark_image=tinted,
+                size=size
+            )
+        except Exception as e:
+            print(f"[ICON TINT ERROR] {icon_path}")
+            print(e)
+
+    return load_icon(name, size)
 
 
 # =========================
