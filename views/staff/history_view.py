@@ -1,7 +1,8 @@
-import os
+﻿import os
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 from controllers.order_controller import OrderController
+from utils.icon_loader import load_icon
 
 class OrderHistoryFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -44,7 +45,9 @@ class OrderHistoryFrame(ctk.CTkFrame):
 
         self.refresh_btn = ctk.CTkButton(
             self.tools_frame,
-            text="↻ Tải lại danh sách",
+            text="Tải lại danh sách",
+            image=load_icon("rotate-ccw", size=(16, 16)),
+            compound="left",
             width=140,
             height=38,
             corner_radius=10,
@@ -373,3 +376,4 @@ class OrderHistoryFrame(ctk.CTkFrame):
             font=("Arial", 12, "bold"),
             command=detail_win.destroy
         ).pack(side="right")
+

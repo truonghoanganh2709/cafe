@@ -3,7 +3,7 @@ from datetime import datetime
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 from controllers.report_controller import ReportController
-from utils.icon_loader import icon_text, load_product_image
+from utils.icon_loader import load_icon, load_product_image
 
 class ReportFrame(ctk.CTkFrame):
     # Giao diện dashboard báo cáo doanh thu hiện đại cho Admin.
@@ -12,6 +12,7 @@ class ReportFrame(ctk.CTkFrame):
         self.controller = controller
         self.current_filter = "7days"
         self.product_images = []
+        self.icon_images = []
         self.chart_canvas = None
         self.filter_buttons = {}
 
@@ -49,9 +50,15 @@ class ReportFrame(ctk.CTkFrame):
 
         actions = ctk.CTkFrame(header, fg_color="transparent")
         actions.pack(side="right")
-        ctk.CTkButton(actions, text="↻ Refresh", width=96, height=38, corner_radius=12, fg_color="#F59E0B", hover_color="#D97706", command=self.load_dashboard).pack(side="left", padx=5)
-        ctk.CTkButton(actions, text="📊 Excel", width=86, height=38, corner_radius=12, fg_color="#10B981", hover_color="#059669", command=self.export_excel).pack(side="left", padx=5)
-        ctk.CTkButton(actions, text="📄 PDF", width=76, height=38, corner_radius=12, fg_color="#1F1008", hover_color="#3A2114", command=self.export_pdf).pack(side="left", padx=5)
+        refresh_icon = load_icon("history", size=(16, 16))
+        excel_icon = load_icon("chart-column", size=(16, 16))
+        pdf_icon = load_icon("receipt", size=(16, 16))
+        for icon in [refresh_icon, excel_icon, pdf_icon]:
+            if icon:
+                self.icon_images.append(icon)
+        ctk.CTkButton(actions, text="Refresh", image=refresh_icon, compound="left", width=108, height=38, corner_radius=12, fg_color="#F59E0B", hover_color="#D97706", command=self.load_dashboard).pack(side="left", padx=5)
+        ctk.CTkButton(actions, text="Excel", image=excel_icon, compound="left", width=94, height=38, corner_radius=12, fg_color="#10B981", hover_color="#059669", command=self.export_excel).pack(side="left", padx=5)
+        ctk.CTkButton(actions, text="PDF", image=pdf_icon, compound="left", width=84, height=38, corner_radius=12, fg_color="#1F1008", hover_color="#3A2114", command=self.export_pdf).pack(side="left", padx=5)
 
         filters = ctk.CTkFrame(self, fg_color="white", corner_radius=18)
         filters.pack(fill="x", padx=30, pady=(0, 16))
@@ -100,7 +107,26 @@ class ReportFrame(ctk.CTkFrame):
             icon_box = ctk.CTkFrame(card, fg_color="#FFF7ED", width=50, height=50, corner_radius=25)
             icon_box.place(relx=0.86, rely=0.32, anchor="center")
             icon_box.pack_propagate(False)
-            ctk.CTkLabel(icon_box, text=icon_text(icon), font=("Arial", 24), text_color="#F59E0B").pack(expand=True)
+            card_icon = load_icon(icon, size=(24, 24))
+
+            if card_icon:
+                self.icon_images.append(card_icon)
+
+                icon_label = ctk.CTkLabel(
+                    icon_box,
+                    text="",
+                    image=card_icon
+                )
+
+                icon_label.pack(expand=True)
+
+            else:
+                ctk.CTkLabel(
+                    icon_box,
+                    text="•",
+                    font=("Arial", 24),
+                    text_color="#F59E0B"
+                ).pack(expand=True)
             ctk.CTkLabel(card, text=title.upper(), font=("Arial", 11, "bold"), text_color="#8A7A70").pack(anchor="w", padx=20, pady=(18, 2))
             ctk.CTkLabel(card, text=value, font=("Arial", 26, "bold"), text_color="#1F1008").pack(anchor="w", padx=20)
             ctk.CTkLabel(card, text=desc, font=("Arial", 12), text_color="#10B981" if "+" in desc else "#8A7A70").pack(anchor="w", padx=20, pady=(2, 16))
@@ -148,8 +174,10 @@ class ReportFrame(ctk.CTkFrame):
         for widget in self.top_card.winfo_children():
             widget.destroy()
         self.product_images.clear()
-        ctk.CTkLabel(self.top_card, text="🏆 Top 5 món bán chạy", font=("Arial", 18, "bold"), text_color="#1F1008").pack(anchor="w", padx=20, pady=(18, 8))
-        medals = ["🥇", "🥈", "🥉", "#4", "#5"]
+        title_icon = load_icon("trophy", size=(20, 20))
+        if title_icon:
+            self.icon_images.append(title_icon)
+        ctk.CTkLabel(self.top_card, text="Top 5 món bán chạy", image=title_icon, compound="left", font=("Arial", 18, "bold"), text_color="#1F1008").pack(anchor="w", padx=20, pady=(18, 8))
         if not rows:
             ctk.CTkLabel(self.top_card, text="Chưa có dữ liệu", font=("Arial", 13), text_color="#9CA3AF").pack(pady=50)
             return
@@ -160,7 +188,8 @@ class ReportFrame(ctk.CTkFrame):
             if image:
                 self.product_images.append(image)
                 ctk.CTkLabel(item, text="", image=image).pack(side="left", padx=10, pady=8)
-            ctk.CTkLabel(item, text=medals[index], font=("Arial", 18), width=34).pack(side="left")
+            rank = ctk.CTkLabel(item, text=str(index + 1), font=("Arial", 14, "bold"), width=30, height=30, corner_radius=15, fg_color="#F59E0B", text_color="white")
+            rank.pack(side="left", padx=(0, 4))
             info = ctk.CTkFrame(item, fg_color="transparent")
             info.pack(side="left", fill="x", expand=True, padx=8)
             ctk.CTkLabel(info, text=str(name), font=("Arial", 13, "bold"), text_color="#1F1008", anchor="w").pack(anchor="w")

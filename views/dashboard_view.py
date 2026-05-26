@@ -1,4 +1,4 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 from tkinter import messagebox, ttk
 from datetime import datetime
 from config.database import connect_db
@@ -9,7 +9,7 @@ from views.admin.product_view import ProductManagementFrame as AdminProductManag
 from views.admin.user_view import UserManagementFrame as AdminUserManagementFrame
 from views.admin.report_view import ReportFrame as AdminReportFrame
 from models.product_model import ProductModel
-from utils.icon_loader import icon_text, load_product_image
+from utils.icon_loader import load_icon, load_product_image
 
 # ==============================================================================
 # 1. TRANG CHỦ (HomeFrame) - HIỂN THỊ THỐNG KÊ TỪ CONTROLLER (MVC)
@@ -21,6 +21,7 @@ class HomeFrame(ctk.CTkFrame):
         self.username = username
         self.role = role
         self.product_images = []
+        self.icon_images = []
 
         # Tiêu đề trang
         self.header_label = ctk.CTkLabel(
@@ -68,10 +69,15 @@ class HomeFrame(ctk.CTkFrame):
         # Khung bên trái: Top món bán chạy
         self.best_seller_frame = ctk.CTkFrame(self.bottom_panel, fg_color="white", corner_radius=18)
         self.best_seller_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-        
+
+        trophy_icon = load_icon("trophy", size=(20, 20))
+        self.icon_images.append(trophy_icon)
+
         ctk.CTkLabel(
             self.best_seller_frame,
-            text=icon_text("trophy", "Top Món Bán Chạy"),
+            text="Top Món Bán Chạy",
+            image=trophy_icon,
+            compound="left",
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=25, pady=(20, 5))
@@ -89,13 +95,19 @@ class HomeFrame(ctk.CTkFrame):
         self.recent_orders_frame = ctk.CTkFrame(self.bottom_panel, fg_color="white", corner_radius=18)
         self.recent_orders_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
+        receipt_icon = load_icon("receipt", size=(20, 20))
+
+        if receipt_icon:
+            self.icon_images.append(receipt_icon)
+
         ctk.CTkLabel(
             self.recent_orders_frame,
-            text=icon_text("receipt", "Đơn Hàng Gần Đây"),
+            text="Đơn Hàng Gần Đây",
+            image=receipt_icon,
+            compound="left",
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=25, pady=(20, 5))
-        
         ctk.CTkLabel(
             self.recent_orders_frame,
             text="5 hóa đơn vừa được tạo trên hệ thống",
@@ -113,12 +125,26 @@ class HomeFrame(ctk.CTkFrame):
         icon_box.place(relx=0.84, rely=0.34, anchor="center")
         icon_box.pack_propagate(False)
 
-        ctk.CTkLabel(
-            icon_box,
-            text=icon_text(icon),
-            font=("Arial", 26),
-            text_color="#F59E0B"
-        ).pack(expand=True)
+        card_icon = load_icon(icon, size=(28, 28))
+
+        if card_icon:
+            self.icon_images.append(card_icon)
+
+            icon_label = ctk.CTkLabel(
+                icon_box,
+                text="",
+                image=card_icon
+            )
+
+            icon_label.pack(expand=True)
+
+        else:
+            ctk.CTkLabel(
+                icon_box,
+                text="•",
+                font=("Arial", 26),
+                text_color="#F59E0B"
+            ).pack(expand=True)
 
         ctk.CTkLabel(
             card,
@@ -180,10 +206,17 @@ class HomeFrame(ctk.CTkFrame):
                 if product_image:
                     self.product_images.append(product_image)
                     ctk.CTkLabel(row_frame, text="", image=product_image).pack(side="left", padx=(0, 12), pady=7)
-                
+
+                flame_icon = load_icon("flame", size=(16, 16))
+
+                if flame_icon:
+                    self.icon_images.append(flame_icon)
+
                 name_lbl = ctk.CTkLabel(
                     row_frame,
-                    text=f"{icon_text('flame')} {name}",
+                    text=name,
+                    image=flame_icon,
+                    compound="left",
                     font=("Arial", 14, "bold"),
                     text_color="#1F1008",
                     anchor="w"
@@ -353,16 +386,16 @@ class ProductManagementFrame(ctk.CTkFrame):
         self.categories_map = {}
         self.load_categories_combo()
 
-        self.btn_add = ctk.CTkButton(self.right_panel, text="➕ Thêm mới", height=38, fg_color="#10B981", hover_color="#059669", text_color="white", font=("Arial", 13, "bold"), command=self.add_product)
+        self.btn_add = ctk.CTkButton(self.right_panel, text="Thêm mới", image=load_icon("plus", size=(16, 16)), compound="left", height=38, fg_color="#10B981", hover_color="#059669", text_color="white", font=("Arial", 13, "bold"), command=self.add_product)
         self.btn_add.pack(fill="x", padx=20, pady=5)
 
-        self.btn_update = ctk.CTkButton(self.right_panel, text="📝 Cập nhật", height=38, fg_color="#F59E0B", hover_color="#D97706", text_color="white", font=("Arial", 13, "bold"), command=self.update_product)
+        self.btn_update = ctk.CTkButton(self.right_panel, text="Cập nhật", image=load_icon("file-text", size=(16, 16)), compound="left", height=38, fg_color="#F59E0B", hover_color="#D97706", text_color="white", font=("Arial", 13, "bold"), command=self.update_product)
         self.btn_update.pack(fill="x", padx=20, pady=5)
 
-        self.btn_delete = ctk.CTkButton(self.right_panel, text="🗑️ Xóa món", height=38, fg_color="#EF4444", hover_color="#DC2626", text_color="white", font=("Arial", 13, "bold"), command=self.delete_product)
+        self.btn_delete = ctk.CTkButton(self.right_panel, text="Xóa món", height=38, fg_color="#EF4444", hover_color="#DC2626", text_color="white", font=("Arial", 13, "bold"), command=self.delete_product)
         self.btn_delete.pack(fill="x", padx=20, pady=5)
 
-        self.btn_clear = ctk.CTkButton(self.right_panel, text="🧹 Làm sạch form", height=35, fg_color="#6B7280", hover_color="#4B5563", text_color="white", font=("Arial", 12), command=self.clear_form)
+        self.btn_clear = ctk.CTkButton(self.right_panel, text="Làm sạch form", height=35, fg_color="#6B7280", hover_color="#4B5563", text_color="white", font=("Arial", 12), command=self.clear_form)
         self.btn_clear.pack(fill="x", padx=20, pady=(15, 5))
 
         self.load_products()
@@ -652,16 +685,16 @@ class UserManagementFrame(ctk.CTkFrame):
         self.combo_role.pack(fill="x", padx=20, pady=(0, 25))
         self.combo_role.set("staff")
 
-        self.btn_add = ctk.CTkButton(self.right_panel, text="➕ Tạo tài khoản", height=38, fg_color="#10B981", hover_color="#059669", text_color="white", font=("Arial", 13, "bold"), command=self.add_user)
+        self.btn_add = ctk.CTkButton(self.right_panel, text="Tạo tài khoản", image=load_icon("plus", size=(16, 16)), compound="left", height=38, fg_color="#10B981", hover_color="#059669", text_color="white", font=("Arial", 13, "bold"), command=self.add_user)
         self.btn_add.pack(fill="x", padx=20, pady=5)
 
-        self.btn_update = ctk.CTkButton(self.right_panel, text="📝 Cập nhật mật khẩu/role", height=38, fg_color="#F59E0B", hover_color="#D97706", text_color="white", font=("Arial", 13, "bold"), command=self.update_user)
+        self.btn_update = ctk.CTkButton(self.right_panel, text="Cập nhật mật khẩu/role", image=load_icon("file-text", size=(16, 16)), compound="left", height=38, fg_color="#F59E0B", hover_color="#D97706", text_color="white", font=("Arial", 13, "bold"), command=self.update_user)
         self.btn_update.pack(fill="x", padx=20, pady=5)
 
-        self.btn_delete = ctk.CTkButton(self.right_panel, text="🗑️ Xóa tài khoản", height=38, fg_color="#EF4444", hover_color="#DC2626", text_color="white", font=("Arial", 13, "bold"), command=self.delete_user)
+        self.btn_delete = ctk.CTkButton(self.right_panel, text="Xóa tài khoản", height=38, fg_color="#EF4444", hover_color="#DC2626", text_color="white", font=("Arial", 13, "bold"), command=self.delete_user)
         self.btn_delete.pack(fill="x", padx=20, pady=5)
 
-        self.btn_clear = ctk.CTkButton(self.right_panel, text="🧹 Làm sạch form", height=35, fg_color="#6B7280", hover_color="#4B5563", text_color="white", font=("Arial", 12), command=self.clear_form)
+        self.btn_clear = ctk.CTkButton(self.right_panel, text="Làm sạch form", height=35, fg_color="#6B7280", hover_color="#4B5563", text_color="white", font=("Arial", 12), command=self.clear_form)
         self.btn_clear.pack(fill="x", padx=20, pady=(15, 5))
 
         self.load_users()
@@ -843,9 +876,9 @@ class RevenueStatisticsFrame(ctk.CTkFrame):
         # Lấy dữ liệu thống kê qua Controller (MVC - chỉ tính đơn 'paid')
         rev_data = OrderController.get_stats()
 
-        self.create_stat_box(self.summary_panel, "TỔNG DOANH THU THỰC TẾ", f"{rev_data['total_revenue']:,.0f}đ", "Hóa đơn đã thanh toán thành công", "💰")
-        self.create_stat_box(self.summary_panel, "TỔNG SỐ ĐƠN THÀNH CÔNG", f"{rev_data['total_orders']}", "Hóa đơn trạng thái 'paid'", "📋")
-        self.create_stat_box(self.summary_panel, "GIÁ TRỊ ĐƠN TRUNG BÌNH", f"{rev_data['avg_order']:,.0f}đ", "Doanh thu bình quân mỗi đơn", "📈")
+        self.create_stat_box(self.summary_panel, "TỔNG DOANH THU THỰC TẾ", f"{rev_data['total_revenue']:,.0f}đ", "Hóa đơn đã thanh toán thành công", "dollar-sign")
+        self.create_stat_box(self.summary_panel, "TỔNG SỐ ĐƠN THÀNH CÔNG", f"{rev_data['total_orders']}", "Hóa đơn trạng thái 'paid'", "receipt")
+        self.create_stat_box(self.summary_panel, "GIÁ TRỊ ĐƠN TRUNG BÌNH", f"{rev_data['avg_order']:,.0f}đ", "Doanh thu bình quân mỗi đơn", "chart-column")
 
         # Bảng xếp hạng bán chạy nhất
         self.details_panel = ctk.CTkFrame(self, fg_color="white", corner_radius=18)
@@ -935,7 +968,7 @@ class DashboardFrame(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------------- SIDEBAR ----------------
-        self.sidebar = ctk.CTkFrame(self, width=260, fg_color="#1F1008", corner_radius=0)
+        self.sidebar = ctk.CTkFrame(self, width=260, fg_color="#4A2C1A", corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
 
@@ -947,14 +980,14 @@ class DashboardFrame(ctk.CTkFrame):
         )
         logo.pack(anchor="w", padx=25, pady=(30, 10))
         
-        line = ctk.CTkFrame(self.sidebar, height=2, fg_color="#3A2114")
+        line = ctk.CTkFrame(self.sidebar, height=2, fg_color="#6B4428")
         line.pack(fill="x", padx=15, pady=(0, 20))
 
         nav_title = ctk.CTkLabel(
             self.sidebar,
             text="DANH MỤC MENU",
             font=("Arial", 11, "bold"),
-            text_color="#8A7A70"
+            text_color="#E8D6C8"
         )
         nav_title.pack(anchor="w", padx=25, pady=(0, 10))
 
@@ -969,12 +1002,12 @@ class DashboardFrame(ctk.CTkFrame):
         bottom_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         bottom_frame.pack(side="bottom", fill="x", padx=20, pady=25)
 
-        user_info_box = ctk.CTkFrame(bottom_frame, fg_color="#2E1B10", corner_radius=10)
+        user_info_box = ctk.CTkFrame(bottom_frame, fg_color="#6B4428", corner_radius=10)
         user_info_box.pack(fill="x", pady=(0, 15))
 
         lbl_user = ctk.CTkLabel(
             user_info_box,
-            text=f"👤 Tài khoản:\n    {self.username}\n    [{self.role.upper()}]",
+            text=f"Tài khoản:\n    {self.username}\n    [{self.role.upper()}]",
             font=("Arial", 13, "bold"),
             text_color="white",
             justify="left"
@@ -983,12 +1016,12 @@ class DashboardFrame(ctk.CTkFrame):
 
         logout_btn = ctk.CTkButton(
             bottom_frame,
-            text=icon_text("log-out", "Đăng xuất"),
+            text="Đăng xuất",
             height=45,
             corner_radius=10,
             fg_color="transparent",
-            hover_color="#EF4444",
-            text_color="#C8B8AA",
+            hover_color="#8B5A34",
+            text_color="#F5E6D8",
             font=("Arial", 14, "bold"),
             anchor="w",
             command=self.logout
@@ -999,36 +1032,84 @@ class DashboardFrame(ctk.CTkFrame):
         self.show_home()
 
     def build_navigation(self):
-        self.add_menu_item(icon_text("home", "Trang chủ"), self.show_home)
+
+        self.add_menu_item(
+            "Trang chủ",
+            self.show_home,
+            "home"
+        )
 
         if self.role == "admin":
-            self.add_menu_item(icon_text("coffee", "Quản lý món"), self.show_product_mgmt)
-            self.add_menu_item(icon_text("users", "Quản lý nhân viên"), self.show_user_mgmt)
-            self.add_menu_item(icon_text("chart-column", "Báo cáo doanh thu"), self.show_revenue)
-            self.add_menu_item(icon_text("history", "Lịch sử hóa đơn"), self.show_history)
-        elif self.role == "staff":
-            self.add_menu_item(icon_text("shopping-cart", "Tạo đơn hàng"), self.show_staff_order)
-            self.add_menu_item(icon_text("receipt", "Lịch sử hóa đơn"), self.show_history)
 
-    def add_menu_item(self, text, command):
+            self.add_menu_item(
+                "Quản lý món",
+                self.show_product_mgmt,
+                "coffee"
+            )
+
+            self.add_menu_item(
+                "Quản lý nhân viên",
+                self.show_user_mgmt,
+                "user"
+            )
+
+            self.add_menu_item(
+                "Báo cáo doanh thu",
+                self.show_revenue,
+                "report"
+            )
+
+            self.add_menu_item(
+                "Lịch sử hóa đơn",
+                self.show_history,
+                "history"
+            )
+
+        elif self.role == "staff":
+
+            self.add_menu_item(
+                "Tạo đơn hàng",
+                self.show_staff_order,
+                "cart"
+            )
+
+            self.add_menu_item(
+                "Lịch sử hóa đơn",
+                self.show_history,
+                "receipt"
+            )
+
+    def add_menu_item(self, text, command, icon_name=None):
+
+        icon = None
+
+        if icon_name:
+            icon = load_icon(icon_name, size=(20, 20))
+
         btn = ctk.CTkButton(
             self.sidebar,
             text=text,
+            image=icon,
+            compound="left",
             height=45,
             corner_radius=12,
             fg_color="transparent",
-            hover_color="#3A2114",
-            text_color="#C8B8AA",
+            hover_color="#8B5A34",
+            text_color="#F5E6D8",
             font=("Arial", 14, "bold"),
             anchor="w",
             command=lambda: self.set_active_menu(btn, command)
         )
+
+        btn.image_ref = icon
+
         btn.pack(fill="x", padx=15, pady=4)
+
         self.menu_buttons.append(btn)
 
     def set_active_menu(self, btn, command):
         if self.active_menu_btn:
-            self.active_menu_btn.configure(fg_color="transparent", text_color="#C8B8AA")
+            self.active_menu_btn.configure(fg_color="transparent", text_color="#F5E6D8")
         btn.configure(fg_color="#F59E0B", text_color="white")
         self.active_menu_btn = btn
         command()
@@ -1070,3 +1151,5 @@ class DashboardFrame(ctk.CTkFrame):
         confirm = messagebox.askyesno("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?")
         if confirm:
             self.controller.show_login()
+
+

@@ -1,4 +1,4 @@
-from config.database import connect_db
+﻿from config.database import connect_db
 
 class ProductModel:
     # Model xử lý toàn bộ thao tác dữ liệu của bảng products.
@@ -29,21 +29,38 @@ class ProductModel:
         return name_col, category_col, quantity_col, image_col
 
     @staticmethod
+    def _has_categories_table(cursor):
+        cursor.execute("SHOW TABLES LIKE 'categories'")
+        return cursor.fetchone() is not None
+
+    @staticmethod
     def get_all(keyword=""):
         conn = connect_db()
         cursor = conn.cursor()
         name_col, category_col, quantity_col, image_col = ProductModel._get_columns(cursor)
-        category_select = category_col if category_col else "''"
         quantity_select = quantity_col if quantity_col else "0"
         image_select = image_col if image_col else "''"
-        sql = f"""
-            SELECT id, {name_col}, {category_select}, price, {quantity_select}, {image_select}
-            FROM products
-            WHERE {name_col} LIKE %s OR CAST({category_select} AS CHAR) LIKE %s
-            ORDER BY id DESC
-        """
         like_keyword = f"%{keyword}%"
-        cursor.execute(sql, (like_keyword, like_keyword))
+
+        if category_col == "category_id" and ProductModel._has_categories_table(cursor):
+            sql = f"""
+                SELECT p.id, p.{name_col}, COALESCE(c.name, p.category_id), p.price, p.{quantity_select}, p.{image_select}
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.{name_col} LIKE %s OR c.name LIKE %s OR CAST(p.category_id AS CHAR) LIKE %s
+                ORDER BY p.id DESC
+            """
+            cursor.execute(sql, (like_keyword, like_keyword, like_keyword))
+        else:
+            category_select = category_col if category_col else "''"
+            sql = f"""
+                SELECT id, {name_col}, {category_select}, price, {quantity_select}, {image_select}
+                FROM products
+                WHERE {name_col} LIKE %s OR CAST({category_select} AS CHAR) LIKE %s
+                ORDER BY id DESC
+            """
+            cursor.execute(sql, (like_keyword, like_keyword))
+
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -54,10 +71,21 @@ class ProductModel:
         conn = connect_db()
         cursor = conn.cursor()
         name_col, category_col, quantity_col, image_col = ProductModel._get_columns(cursor)
-        category_select = category_col if category_col else "''"
         quantity_select = quantity_col if quantity_col else "0"
         image_select = image_col if image_col else "''"
-        cursor.execute(f"SELECT id, {name_col}, {category_select}, price, {quantity_select}, {image_select} FROM products WHERE id=%s", (product_id,))
+
+        if category_col == "category_id" and ProductModel._has_categories_table(cursor):
+            sql = f"""
+                SELECT p.id, p.{name_col}, COALESCE(c.name, p.category_id), p.price, p.{quantity_select}, p.{image_select}
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.id=%s
+            """
+            cursor.execute(sql, (product_id,))
+        else:
+            category_select = category_col if category_col else "''"
+            cursor.execute(f"SELECT id, {name_col}, {category_select}, price, {quantity_select}, {image_select} FROM products WHERE id=%s", (product_id,))
+
         row = cursor.fetchone()
         cursor.close()
         conn.close()

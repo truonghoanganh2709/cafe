@@ -2,7 +2,7 @@
 from tkinter import messagebox
 from controllers.order_controller import OrderController
 from models.product_model import ProductModel
-from utils.icon_loader import icon_text, load_product_image
+from utils.icon_loader import load_icon, load_product_image
 
 class StaffOrderFrame(ctk.CTkFrame):
     def __init__(self, parent, controller, user_id):
@@ -13,6 +13,7 @@ class StaffOrderFrame(ctk.CTkFrame):
         # Giỏ hàng hiện tại: {product_id: {"name": ..., "price": ..., "quantity": ..., "max_stock": ...}}
         self.cart = {}
         self.product_images = []
+        self.icon_images = []
 
         # Bố cục POS (Trái: Menu & Tìm kiếm, Phải: Giỏ hàng)
         self.pos_body = ctk.CTkFrame(self, fg_color="transparent")
@@ -63,7 +64,7 @@ class StaffOrderFrame(ctk.CTkFrame):
     def load_category_filters(self):
         btn_all = ctk.CTkButton(
             self.filter_buttons_frame,
-            text=icon_text("utensils", "Tất cả"),
+            text="Tất cả",
             width=95,
             height=35,
             corner_radius=18,
@@ -81,17 +82,9 @@ class StaffOrderFrame(ctk.CTkFrame):
             categories = sorted({str(row[2]) for row in products if row[2] not in [None, ""]})
 
             for cat_name in categories:
-                cat_display = cat_name
-                if cat_name.lower() == "coffee":
-                    cat_display = "☕ Cà Phê"
-                elif cat_name.lower() == "tea":
-                    cat_display = "🍵 Trà"
-                elif cat_name.lower() == "cake":
-                    cat_display = "🍰 Bánh Ngọt"
-
                 btn = ctk.CTkButton(
                     self.filter_buttons_frame,
-                    text=cat_display,
+                    text=cat_name,
                     width=95,
                     height=35,
                     corner_radius=18,
@@ -105,6 +98,7 @@ class StaffOrderFrame(ctk.CTkFrame):
                 self.category_buttons[cat_name] = btn
         except Exception as e:
             print("Lỗi tải danh mục filter:", e)
+
     def select_category(self, cat_id):
         for cid, btn in self.category_buttons.items():
             if cid == cat_id:
@@ -164,7 +158,10 @@ class StaffOrderFrame(ctk.CTkFrame):
             self.product_images.append(product_image)
             ctk.CTkLabel(img_frame, text="", image=product_image).pack(expand=True)
         else:
-            ctk.CTkLabel(img_frame, text="🍽️", font=("Arial", 44)).pack(expand=True)
+            default_icon = load_icon("utensils", size=(44, 44))
+            if default_icon:
+                self.icon_images.append(default_icon)
+                ctk.CTkLabel(img_frame, text="", image=default_icon).pack(expand=True)
 
         ctk.CTkLabel(
             card,
@@ -176,7 +173,7 @@ class StaffOrderFrame(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card,
-            text=f"{icon_text('utensils')} {category}",
+            text=category,
             font=("Arial", 11, "bold"),
             text_color="#8A7A70",
             anchor="w"
@@ -204,7 +201,7 @@ class StaffOrderFrame(ctk.CTkFrame):
 
         add_btn = ctk.CTkButton(
             card,
-            text=icon_text("plus", "Thêm"),
+            text="+  Thêm",
             height=34,
             corner_radius=15,
             fg_color="#F59E0B" if stock > 0 else "#E5E7EB",
@@ -216,9 +213,16 @@ class StaffOrderFrame(ctk.CTkFrame):
         )
         add_btn.pack(side="bottom", padx=12, pady=(0, 12), fill="x")
     def setup_cart_panel(self):
+        cart_icon = load_icon("shopping-cart", size=(20, 20))
+
+        if cart_icon:
+            self.icon_images.append(cart_icon)
+
         ctk.CTkLabel(
             self.right_panel,
-            text=icon_text("shopping-cart", "Đơn Hiện Tại"),
+            text="Đơn Hiện Tại",
+            image=cart_icon,
+            compound="left",
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
         ).pack(anchor="w", padx=20, pady=(20, 2))
@@ -234,9 +238,14 @@ class StaffOrderFrame(ctk.CTkFrame):
         self.cart_scroll = ctk.CTkScrollableFrame(self.right_panel, fg_color="transparent")
         self.cart_scroll.pack(fill="both", expand=True, padx=10)
 
+        empty_cart_icon = load_icon("shopping-bag", size=(36, 36))
+        if empty_cart_icon:
+            self.icon_images.append(empty_cart_icon)
         self.empty_cart_lbl = ctk.CTkLabel(
             self.cart_scroll,
-            text="🛍️\n\nChưa có món ăn\nHãy chọn món từ menu bên trái",
+            text="Chưa có món ăn\nHãy chọn món từ menu bên trái",
+            image=empty_cart_icon,
+            compound="top",
             font=("Arial", 14),
             text_color="#CBD5E1"
         )
@@ -263,9 +272,16 @@ class StaffOrderFrame(ctk.CTkFrame):
         )
         self.total_price_label.pack(side="right")
 
+        receipt_icon = load_icon("receipt", size=(18, 18))
+
+        if receipt_icon:
+            self.icon_images.append(receipt_icon)
+
         self.pay_btn = ctk.CTkButton(
             self.checkout_panel,
-            text=icon_text("receipt", "Tạo đơn"),
+            text="Tạo đơn",
+            image=receipt_icon,
+            compound="left",
             height=50,
             corner_radius=12,
             fg_color="#F59E0B",
@@ -422,5 +438,8 @@ class StaffOrderFrame(ctk.CTkFrame):
         
         # Tải lại sản phẩm menu để cập nhật số tồn
         self.load_products_menu()
+
+
+
 
 
