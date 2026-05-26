@@ -70,13 +70,13 @@ class HomeFrame(ctk.CTkFrame):
         self.best_seller_frame = ctk.CTkFrame(self.bottom_panel, fg_color="white", corner_radius=18)
         self.best_seller_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
-        trophy_icon = load_icon("trophy", size=(20, 20))
-        self.icon_images.append(trophy_icon)
+        # trophy_icon = load_icon("trophy", size=(20, 20))
+        # self.icon_images.append(trophy_icon)
 
         ctk.CTkLabel(
             self.best_seller_frame,
             text="Top Món Bán Chạy",
-            image=trophy_icon,
+            # image=trophy_icon,
             compound="left",
             font=("Arial", 18, "bold"),
             text_color="#1F1008"
@@ -97,13 +97,13 @@ class HomeFrame(ctk.CTkFrame):
 
         receipt_icon = load_icon("receipt", size=(20, 20))
 
-        if receipt_icon:
-            self.icon_images.append(receipt_icon)
+        # if receipt_icon:
+        #     self.icon_images.append(receipt_icon)
 
         ctk.CTkLabel(
             self.recent_orders_frame,
             text="Đơn Hàng Gần Đây",
-            image=receipt_icon,
+            # image=receipt_icon,
             compound="left",
             font=("Arial", 18, "bold"),
             text_color="#1F1008"

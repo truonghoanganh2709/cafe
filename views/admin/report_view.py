@@ -50,7 +50,7 @@ class ReportFrame(ctk.CTkFrame):
 
         actions = ctk.CTkFrame(header, fg_color="transparent")
         actions.pack(side="right")
-        refresh_icon = load_icon("history", size=(16, 16))
+        refresh_icon = load_icon("rotate-ccw", size=(16, 16))
         excel_icon = load_icon("chart-column", size=(16, 16))
         pdf_icon = load_icon("receipt", size=(16, 16))
         for icon in [refresh_icon, excel_icon, pdf_icon]:

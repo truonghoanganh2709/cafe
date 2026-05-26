@@ -53,8 +53,8 @@ class UserManagementFrame(ctk.CTkFrame):
         self.combo_status.pack(fill="x", padx=20, pady=(0, 15))
         self.combo_status.set("active")
 
-        ctk.CTkButton(right_panel, text="Thêm user", image=load_icon("plus", size=(16, 16)), compound="left", height=38, fg_color="#10B981", command=self.add_user).pack(fill="x", padx=20, pady=5)
-        ctk.CTkButton(right_panel, text="Sửa user", image=load_icon("file-text", size=(16, 16)), compound="left", height=38, fg_color="#F59E0B", command=self.update_user).pack(fill="x", padx=20, pady=5)
+        ctk.CTkButton(right_panel, text="Thêm user", compound="left", height=38, fg_color="#10B981", command=self.add_user).pack(fill="x", padx=20, pady=5)
+        ctk.CTkButton(right_panel, text="Sửa user", compound="left", height=38, fg_color="#F59E0B", command=self.update_user).pack(fill="x", padx=20, pady=5)
         ctk.CTkButton(right_panel, text="Vô hiệu hóa", height=38, fg_color="#EF4444", command=self.deactivate_user).pack(fill="x", padx=20, pady=5)
         ctk.CTkButton(right_panel, text="Kích hoạt lại", height=38, fg_color="#2563EB", command=self.activate_user).pack(fill="x", padx=20, pady=5)
         ctk.CTkButton(right_panel, text="Làm sạch", height=35, fg_color="#6B7280", command=self.clear_form).pack(fill="x", padx=20, pady=(15, 5))
